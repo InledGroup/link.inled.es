@@ -4,16 +4,21 @@ export const POST: APIRoute = async ({ request, locals }) => {
 	try {
 		const { action, password, data } = await request.json();
 
-		if (!locals.runtime) {
-			return new Response(JSON.stringify({ error: 'Locals.runtime missing' }), { status: 500 });
+		// @ts-ignore
+		const runtime = locals.runtime;
+		if (!runtime) {
+			return new Response(JSON.stringify({ error: 'Runtime no disponible' }), { status: 500 });
 		}
 
-		const env = locals.runtime.env;
+		const env = runtime.env;
 		if (password !== env.ADMIN_PASSWORD) {
 			return new Response(JSON.stringify({ error: 'Contraseña incorrecta' }), { status: 403 });
 		}
 
 		const db = env.link_db;
+		if (!db) {
+			return new Response(JSON.stringify({ error: 'Base de datos no disponible' }), { status: 500 });
+		}
 
 		if (action === 'list') {
 			const { results } = await db.prepare('SELECT * FROM links ORDER BY created_at DESC').all();
@@ -32,12 +37,11 @@ export const POST: APIRoute = async ({ request, locals }) => {
 		}
 
 		if (action === 'import') {
-			const links = data; // Array de objetos {slug, url}
+			const links = data; 
 			if (!Array.isArray(links)) {
 				return new Response(JSON.stringify({ error: 'Datos de importación inválidos' }), { status: 400 });
 			}
 
-			// Importación masiva (batch)
 			const statements = links.map(link => 
 				db.prepare('INSERT OR REPLACE INTO links (slug, url) VALUES (?, ?)').bind(link.slug, link.url)
 			);
@@ -49,7 +53,6 @@ export const POST: APIRoute = async ({ request, locals }) => {
 		return new Response(JSON.stringify({ error: 'Acción no válida' }), { status: 400 });
 
 	} catch (error: any) {
-		console.error('Error en Manage API:', error);
 		return new Response(JSON.stringify({ error: error.message }), { status: 500 });
 	}
 };
