@@ -8,8 +8,18 @@ if (!slug) {
 	return Astro.redirect('/');
 }
 
+if (!Astro.locals.runtime) {
+	console.error('Error: locals.runtime no disponible en [slug].astro');
+	return new Response('Error interno: Configuración de Cloudflare no detectada', { status: 500 });
+}
+
 const env = Astro.locals.runtime.env;
 const db = env.link_db;
+
+if (!db) {
+	console.error('Error: link_db no vinculado');
+	return new Response('Error interno: Base de datos no vinculada', { status: 500 });
+}
 
 const result = await db.prepare('SELECT url FROM links WHERE slug = ?')
 	.bind(slug.toLowerCase().trim())

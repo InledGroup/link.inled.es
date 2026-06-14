@@ -3,44 +3,93 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="link.inled.es - Acortador">
-	<div class="card">
-		<h1>Acortar Enlace</h1>
-		<p class="subtitle">Personaliza tu link corto para link.inled.es</p>
-		
-		<form id="shorten-form">
-			<div class="field">
-				<label for="url">URL original</label>
-				<input type="url" id="url" name="url" required placeholder="https://ejemplo.com/mi-pagina-larga" />
-			</div>
-
-			<div class="field">
-				<label for="slug">Slug (parte final)</label>
-				<div class="slug-input">
-					<span>link.inled.es/</span>
-					<input type="text" id="slug" name="slug" required placeholder="mi-link" />
+	<div class="container">
+		<div class="card">
+			<h1>Acortar Enlace</h1>
+			<p class="subtitle">Personaliza tu link corto para link.inled.es</p>
+			
+			<form id="shorten-form">
+				<div class="field">
+					<label for="url">URL original</label>
+					<input type="url" id="url" name="url" required placeholder="https://ejemplo.com/mi-pagina-larga" />
 				</div>
+
+				<div class="field">
+					<label for="slug">Slug (parte final)</label>
+					<div class="slug-input">
+						<span>link.inled.es/</span>
+						<input type="text" id="slug" name="slug" required placeholder="mi-link" />
+					</div>
+				</div>
+
+				<div class="field">
+					<label for="password">Contraseña de administrador</label>
+					<input type="password" id="password" name="password" required />
+				</div>
+
+				<button type="submit" id="submit-btn">Crear enlace acortado</button>
+			</form>
+
+			<div id="message" class="hidden"></div>
+		</div>
+
+		<div class="card management">
+			<div class="manage-header">
+				<h2>Gestión de Enlaces</h2>
+				<button id="refresh-btn" class="secondary">Cargar / Refrescar Lista</button>
+			</div>
+			
+			<div class="manage-actions">
+				<button id="export-btn" class="secondary">Exportar JSON</button>
+				<label for="import-file" class="button secondary">Importar JSON</label>
+				<input type="file" id="import-file" accept=".json" style="display: none;" />
 			</div>
 
-			<div class="field">
-				<label for="password">Contraseña de administrador</label>
-				<input type="password" id="password" name="password" required />
+			<div id="links-list-container">
+				<p class="empty-msg">Pulsa "Cargar Lista" y pon tu contraseña arriba para ver los enlaces.</p>
+				<table id="links-table" class="hidden">
+					<thead>
+						<tr>
+							<th>Slug</th>
+							<th>URL Destino</th>
+							<th>Acción</th>
+						</tr>
+					</thead>
+					<tbody id="links-body"></tbody>
+				</table>
 			</div>
-
-			<button type="submit" id="submit-btn">Crear enlace acortado</button>
-		</form>
-
-		<div id="message" class="hidden"></div>
+		</div>
 	</div>
 </Layout>
 
 <style>
+	.container {
+		display: flex;
+		flex-direction: column;
+		gap: 2rem;
+		width: 100%;
+	}
 	.card {
 		background: var(--white);
 		padding: 2rem;
 		border-radius: 1rem;
 		box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
 	}
-	h1 {
+	.management {
+		margin-top: 1rem;
+	}
+	.manage-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 1.5rem;
+	}
+	.manage-actions {
+		display: flex;
+		gap: 0.5rem;
+		margin-bottom: 1.5rem;
+	}
+	h1, h2 {
 		font-size: 1.5rem;
 		margin-bottom: 0.5rem;
 	}
@@ -92,7 +141,7 @@ import Layout from '../layouts/Layout.astro';
 		background: transparent;
 		width: 100%;
 	}
-	button {
+	button, .button {
 		background: var(--primary);
 		color: white;
 		border: none;
@@ -101,10 +150,25 @@ import Layout from '../layouts/Layout.astro';
 		font-weight: 700;
 		cursor: pointer;
 		transition: background 0.2s;
-		margin-top: 0.5rem;
+		text-align: center;
+		text-decoration: none;
+		display: inline-block;
 	}
 	button:hover {
 		background: var(--primary-hover);
+	}
+	button.secondary {
+		background: #64748b;
+		padding: 0.5rem 1rem;
+		font-size: 0.8rem;
+	}
+	button.secondary:hover {
+		background: #475569;
+	}
+	button.delete-btn {
+		background: var(--error);
+		padding: 0.4rem 0.8rem;
+		font-size: 0.75rem;
 	}
 	button:disabled {
 		opacity: 0.7;
@@ -128,12 +192,45 @@ import Layout from '../layouts/Layout.astro';
 	.hidden {
 		display: none;
 	}
+	table {
+		width: 100%;
+		border-collapse: collapse;
+		margin-top: 1rem;
+		font-size: 0.9rem;
+	}
+	th, td {
+		text-align: left;
+		padding: 0.75rem;
+		border-bottom: 1px solid var(--border);
+	}
+	th {
+		background: #f8fafc;
+	}
+	.url-cell {
+		max-width: 200px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.empty-msg {
+		color: #64748b;
+		text-align: center;
+		padding: 2rem;
+	}
 </style>
 
 <script>
 	const form = document.getElementById('shorten-form') as HTMLFormElement;
 	const message = document.getElementById('message') as HTMLDivElement;
 	const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+	const refreshBtn = document.getElementById('refresh-btn') as HTMLButtonElement;
+	const exportBtn = document.getElementById('export-btn') as HTMLButtonElement;
+	const importFile = document.getElementById('import-file') as HTMLInputElement;
+	const linksTable = document.getElementById('links-table') as HTMLTableElement;
+	const linksBody = document.getElementById('links-body') as HTMLTableSectionElement;
+	const emptyMsg = document.querySelector('.empty-msg') as HTMLParagraphElement;
+
+	const getPassword = () => (document.getElementById('password') as HTMLInputElement).value;
 
 	form.addEventListener('submit', async (e) => {
 		e.preventDefault();
@@ -148,9 +245,7 @@ import Layout from '../layouts/Layout.astro';
 			const response = await fetch('/api/create', {
 				method: 'POST',
 				body: JSON.stringify(data),
-				headers: {
-					'Content-Type': 'application/json'
-				}
+				headers: { 'Content-Type': 'application/json' }
 			});
 
 			const result = await response.json();
@@ -159,16 +254,135 @@ import Layout from '../layouts/Layout.astro';
 				message.className = 'success';
 				message.innerHTML = `¡Éxito! Tu enlace es: <a href="/${data.slug}" target="_blank">link.inled.es/${data.slug}</a>`;
 				form.reset();
+				loadLinks(); // Recargar lista
 			} else {
 				message.className = 'error';
 				message.textContent = result.error || 'Ocurrió un error inesperado.';
 			}
 		} catch (error) {
 			message.className = 'error';
-			message.textContent = 'Error de conexión con el servidor.';
+			message.textContent = 'Error de conexión.';
 		} finally {
 			submitBtn.disabled = false;
 			submitBtn.textContent = 'Crear enlace acortado';
 		}
+	});
+
+	async function loadLinks() {
+		const password = getPassword();
+		if (!password) {
+			alert('Por favor, introduce la contraseña en el formulario arriba para gestionar los enlaces.');
+			return;
+		}
+
+		try {
+			const response = await fetch('/api/manage', {
+				method: 'POST',
+				body: JSON.stringify({ action: 'list', password }),
+				headers: { 'Content-Type': 'application/json' }
+			});
+			const result = await response.json();
+			
+			if (response.ok) {
+				renderLinks(result.links);
+			} else {
+				alert(result.error);
+			}
+		} catch (e) {
+			alert('Error al cargar enlaces');
+		}
+	}
+
+	function renderLinks(links: any[]) {
+		linksBody.innerHTML = '';
+		if (links.length === 0) {
+			linksTable.classList.add('hidden');
+			emptyMsg.classList.remove('hidden');
+			emptyMsg.textContent = 'No hay enlaces creados todavía.';
+			return;
+		}
+
+		linksTable.classList.remove('hidden');
+		emptyMsg.classList.add('hidden');
+
+		links.forEach(link => {
+			const tr = document.createElement('tr');
+			tr.innerHTML = `
+				<td><strong>/${link.slug}</strong></td>
+				<td class="url-cell">${link.url}</td>
+				<td>
+					<button class="delete-btn" data-id="${link.id}">Borrar</button>
+				</td>
+			`;
+			linksBody.appendChild(tr);
+		});
+
+		// Eventos de borrado
+		document.querySelectorAll('.delete-btn').forEach(btn => {
+			btn.addEventListener('click', async (e) => {
+				if (!confirm('¿Seguro que quieres borrar este enlace?')) return;
+				const id = (e.target as HTMLButtonElement).dataset.id;
+				const password = getPassword();
+				
+				const res = await fetch('/api/manage', {
+					method: 'POST',
+					body: JSON.stringify({ action: 'delete', password, data: { id } }),
+					headers: { 'Content-Type': 'application/json' }
+				});
+				if (res.ok) loadLinks();
+				else alert('Error al borrar');
+			});
+		});
+	}
+
+	refreshBtn.addEventListener('click', loadLinks);
+
+	exportBtn.addEventListener('click', async () => {
+		const password = getPassword();
+		const response = await fetch('/api/manage', {
+			method: 'POST',
+			body: JSON.stringify({ action: 'export', password }),
+			headers: { 'Content-Type': 'application/json' }
+		});
+		const result = await response.json();
+		if (response.ok) {
+			const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(result.links, null, 2));
+			const downloadAnchorNode = document.createElement('a');
+			downloadAnchorNode.setAttribute("href",     dataStr);
+			downloadAnchorNode.setAttribute("download", "links_export.json");
+			document.body.appendChild(downloadAnchorNode);
+			downloadAnchorNode.click();
+			downloadAnchorNode.remove();
+		} else {
+			alert(result.error);
+		}
+	});
+
+	importFile.addEventListener('change', async (e) => {
+		const file = (e.target as HTMLInputElement).files?.[0];
+		if (!file) return;
+
+		const reader = new FileReader();
+		reader.onload = async (event) => {
+			try {
+				const data = JSON.parse(event.target?.result as string);
+				const password = getPassword();
+				const response = await fetch('/api/manage', {
+					method: 'POST',
+					body: JSON.stringify({ action: 'import', password, data }),
+					headers: { 'Content-Type': 'application/json' }
+				});
+				if (response.ok) {
+					alert('Importación completada con éxito');
+					loadLinks();
+				} else {
+					const err = await response.json();
+					alert('Error al importar: ' + err.error);
+				}
+			} catch (err) {
+				alert('Archivo JSON inválido');
+			}
+		};
+		reader.readAsText(file);
 	});
 </script>
