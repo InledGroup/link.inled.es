@@ -3,189 +3,202 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="link.inled.es - Acortador">
-	<div class="container">
-		<div class="header">
-			<h1>link.inled.es</h1>
-			<button id="logout-btn" class="secondary">Cerrar Sesión</button>
-		</div>
+	<div class="space-y-10 w-full">
+		<!-- Header Centrado -->
+		<header class="flex flex-col items-center space-y-4">
+			<img src="https://hosted.inled.es/inled-logo-full.png" alt="Inled Logo" height="40" class="h-10" />
+			<div class="flex items-center space-x-4">
+				<h1 class="text-sm font-medium text-muted-foreground uppercase tracking-widest">Link Shortener</h1>
+				<span class="text-border">|</span>
+				<button id="logout-btn" class="text-xs font-semibold hover:text-foreground text-muted-foreground transition-colors">Cerrar Sesión</button>
+			</div>
+		</header>
 
-		<div class="card">
-			<h2>Acortar Enlace</h2>
-			<p class="subtitle">Personaliza tu link corto</p>
-			
-			<form id="shorten-form">
-				<div class="field">
-					<label for="url">URL original</label>
-					<input type="url" id="url" name="url" required placeholder="https://ejemplo.com/mi-pagina-larga" />
+		<div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+			<!-- Columna Izquierda: Acciones (4/12) -->
+			<div class="lg:col-span-5 space-y-8">
+				<!-- Card Crear Link -->
+				<div class="card p-8 relative overflow-hidden">
+					<div class="absolute top-0 left-0 w-1 h-full bg-primary"></div>
+					<div class="mb-8">
+						<h2 class="text-2xl font-bold tracking-tight mb-1">Acortar Enlace</h2>
+						<p class="text-sm text-muted-foreground">Genera un nuevo link personalizado al instante.</p>
+					</div>
+					
+					<form id="shorten-form" class="space-y-6">
+						<div class="space-y-2">
+							<label for="url" class="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">URL de Destino</label>
+							<input type="url" id="url" name="url" required placeholder="https://ejemplo.com/mi-pagina-muy-larga" />
+						</div>
+
+						<div class="space-y-2">
+							<label for="slug" class="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Slug del enlace</label>
+							<div class="flex items-center">
+								<div class="bg-muted px-3 h-11 flex items-center border border-r-0 border-input rounded-l-md text-sm font-medium text-muted-foreground">
+									link.inled.es/
+								</div>
+								<input type="text" id="slug" name="slug" required placeholder="mi-link" class="rounded-l-none" />
+							</div>
+						</div>
+
+						<button type="submit" id="submit-btn" class="btn btn-primary w-full text-base">Generar Enlace</button>
+					</form>
+
+					<div id="message" class="hidden mt-6 p-4 rounded-lg text-sm text-center font-medium border animate-in fade-in slide-in-from-top-2 duration-300"></div>
 				</div>
 
-				<div class="field">
-					<label for="slug">Slug (parte final)</label>
-					<div class="slug-input">
-						<span>link.inled.es/</span>
-						<input type="text" id="slug" name="slug" required placeholder="mi-link" />
+				<!-- Card Backup -->
+				<div class="card p-6 bg-muted/30">
+					<div class="mb-4">
+						<h2 class="text-lg font-bold tracking-tight mb-1">Copia de Seguridad</h2>
+						<p class="text-xs text-muted-foreground">Exporta o importa la base de datos de enlaces.</p>
+					</div>
+					<div class="flex gap-3">
+						<button id="export-btn" class="btn btn-outline flex-1 bg-card">Exportar JSON</button>
+						<label for="import-file" class="btn btn-outline flex-1 bg-card">Importar JSON</label>
+						<input type="file" id="import-file" accept=".json" style="display: none;" />
 					</div>
 				</div>
-
-				<button type="submit" id="submit-btn">Crear enlace acortado</button>
-			</form>
-
-			<div id="message" class="hidden"></div>
-		</div>
-
-		<div class="card management">
-			<div class="manage-header">
-				<h2>Gestión de Enlaces</h2>
-				<button id="refresh-btn" class="secondary">Refrescar Lista</button>
-			</div>
-			
-			<div class="manage-actions">
-				<button id="export-btn" class="secondary">Exportar JSON</button>
-				<label for="import-file" class="button secondary">Importar JSON</label>
-				<input type="file" id="import-file" accept=".json" style="display: none;" />
 			</div>
 
-			<div id="links-list-container">
-				<table id="links-table" class="hidden">
-					<thead>
-						<tr>
-							<th>Slug</th>
-							<th>URL Destino</th>
-							<th>Acción</th>
-						</tr>
-					</thead>
-					<tbody id="links-body"></tbody>
-				</table>
-				<p class="empty-msg">Cargando enlaces...</p>
+			<!-- Columna Derecha: Gestión (7/12) -->
+			<div class="lg:col-span-7 flex flex-col space-y-4">
+				<div class="flex justify-between items-end px-2">
+					<div>
+						<h2 class="text-2xl font-bold tracking-tight">Gestión de Enlaces</h2>
+						<p class="text-sm text-muted-foreground">Listado de links activos y redirecciones.</p>
+					</div>
+					<button id="refresh-btn" class="btn btn-outline h-10 w-10 p-0 rounded-full hover:rotate-180 transition-transform duration-500" title="Refrescar lista">
+						🔄
+					</button>
+				</div>
+
+				<div class="card overflow-hidden">
+					<div id="links-container" class="min-h-[400px]">
+						<div id="loading-state" class="p-20 text-center flex flex-col items-center space-y-4">
+							<div class="animate-spin text-2xl">⏳</div>
+							<p class="text-sm font-medium text-muted-foreground">Cargando enlaces de la base de datos...</p>
+						</div>
+
+						<div id="links-list" class="hidden divide-y divide-border">
+							<!-- Las filas se insertan aquí -->
+						</div>
+
+						<div id="empty-state" class="hidden p-20 text-center flex flex-col items-center space-y-4">
+							<div class="text-4xl">🔗</div>
+							<p class="text-sm font-medium text-muted-foreground">No hay enlaces creados todavía.</p>
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>
 </Layout>
 
 <style>
-	.container {
-		display: flex;
-		flex-direction: column;
-		gap: 2rem;
-		width: 100%;
-	}
-	.header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-	}
-	.card {
-		background: var(--white);
-		padding: 2rem;
-		border-radius: 1rem;
-		box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-	}
-	.manage-header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		margin-bottom: 1.5rem;
-	}
-	.manage-actions {
-		display: flex;
-		gap: 0.5rem;
-		margin-bottom: 1.5rem;
-	}
-	h1 { font-size: 1.8rem; }
-	h2 { font-size: 1.3rem; margin-bottom: 0.5rem; }
-	.subtitle {
-		color: #64748b;
-		font-size: 0.9rem;
-		margin-bottom: 1.5rem;
-	}
-	form {
-		display: flex;
-		flex-direction: column;
-		gap: 1.5rem;
-	}
-	.field {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-	}
-	label {
-		font-weight: 600;
-		font-size: 0.875rem;
-	}
-	input {
-		padding: 0.75rem;
-		border: 1px solid var(--border);
-		border-radius: 0.5rem;
-		font-size: 1rem;
-	}
-	.slug-input {
-		display: flex;
-		align-items: center;
-		border: 1px solid var(--border);
-		border-radius: 0.5rem;
-		padding-left: 0.75rem;
-		background: #f1f5f9;
-	}
-	.slug-input span {
-		color: #64748b;
-		font-size: 0.9rem;
-	}
-	.slug-input input {
-		border: none;
-		background: transparent;
-		width: 100%;
-	}
-	button, .button {
-		background: var(--primary);
-		color: white;
-		border: none;
-		padding: 1rem;
-		border-radius: 0.5rem;
-		font-weight: 700;
-		cursor: pointer;
-		text-align: center;
-	}
-	button.secondary {
-		background: #64748b;
-		padding: 0.5rem 1rem;
-		font-size: 0.8rem;
-	}
-	button.delete-btn {
-		background: var(--error);
-		padding: 0.4rem 0.8rem;
-		font-size: 0.75rem;
-	}
-	#message {
-		margin-top: 1.5rem;
-		padding: 1rem;
-		border-radius: 0.5rem;
-		font-size: 0.9rem;
-		text-align: center;
-	}
-	#message.error { background: #fee2e2; color: #991b1b; }
-	#message.success { background: #d1fae5; color: #065f46; }
+	.space-y-10 > * + * { margin-top: 2.5rem; }
+	.space-y-8 > * + * { margin-top: 2rem; }
+	.space-y-6 > * + * { margin-top: 1.5rem; }
+	.space-y-4 > * + * { margin-top: 1rem; }
+	.space-y-2 > * + * { margin-top: 0.5rem; }
+	.space-x-4 > * + * { margin-left: 1rem; }
+	.flex { display: flex; }
+	.flex-col { flex-direction: column; }
+	.flex-1 { flex: 1 1 0%; }
+	.items-center { align-items: center; }
+	.items-end { align-items: flex-end; }
+	.justify-between { justify-content: space-between; }
+	.justify-center { justify-content: center; }
+	.grid { display: grid; }
+	.gap-10 { gap: 2.5rem; }
+	.gap-3 { gap: 0.75rem; }
+	.w-full { width: 100%; }
+	.h-10 { height: 2.5rem; }
+	.h-11 { height: 2.75rem; }
+	.w-10 { width: 2.5rem; }
+	.p-0 { padding: 0; }
+	.p-4 { padding: 1rem; }
+	.p-6 { padding: 1.5rem; }
+	.p-8 { padding: 2rem; }
+	.p-20 { padding: 5rem; }
+	.px-2 { padding-left: 0.5rem; padding-right: 0.5rem; }
+	.px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
+	.ml-1 { margin-left: 0.25rem; }
+	.mb-1 { margin-bottom: 0.25rem; }
+	.mb-4 { margin-bottom: 1rem; }
+	.mb-8 { margin-bottom: 2rem; }
+	.mt-6 { margin-top: 1.5rem; }
+	.text-center { text-align: center; }
+	.text-2xl { font-size: 1.5rem; line-height: 2rem; }
+	.text-xl { font-size: 1.25rem; }
+	.text-lg { font-size: 1.125rem; }
+	.text-sm { font-size: 0.875rem; }
+	.text-xs { font-size: 0.75rem; }
+	.text-base { font-size: 1rem; }
+	.font-bold { font-weight: 700; }
+	.font-semibold { font-weight: 600; }
+	.font-medium { font-weight: 500; }
+	.uppercase { text-transform: uppercase; }
+	.tracking-tight { letter-spacing: -0.025em; }
+	.tracking-widest { letter-spacing: 0.1em; }
+	.tracking-wider { letter-spacing: 0.05em; }
+	.text-muted-foreground { color: hsl(var(--muted-foreground)); }
+	.text-destructive { color: hsl(var(--destructive)); }
+	.text-border { color: hsl(var(--border)); }
+	.bg-muted { background-color: hsl(var(--muted)); }
+	.bg-muted\/30 { background-color: hsl(var(--muted) / 0.3); }
+	.bg-card { background-color: hsl(var(--card)); }
+	.bg-primary { background-color: hsl(var(--primary)); }
+	.border-input { border-color: hsl(var(--input)); }
+	.border-r-0 { border-right-width: 0; }
+	.rounded-l-md { border-top-left-radius: var(--radius); border-bottom-left-radius: var(--radius); }
+	.rounded-l-none { border-top-left-radius: 0; border-bottom-left-radius: 0; }
+	.rounded-full { border-radius: 9999px; }
+	.overflow-hidden { overflow: hidden; }
+	.min-h-\[400px\] { min-height: 400px; }
+	.divide-y > * + * { border-top-width: 1px; }
+	.divide-border > * + * { border-color: hsl(var(--border)); }
 	.hidden { display: none; }
-	table {
-		width: 100%;
-		border-collapse: collapse;
-		margin-top: 1rem;
-		font-size: 0.85rem;
+	.animate-spin { animation: spin 1s linear infinite; }
+	@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+	
+	@media (min-width: 1024px) {
+		.lg\:grid-cols-12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+		.lg\:col-span-5 { grid-column: span 5 / span 5; }
+		.lg\:col-span-7 { grid-column: span 7 / span 7; }
 	}
-	th, td {
-		text-align: left;
-		padding: 0.75rem;
-		border-bottom: 1px solid var(--border);
+
+	.msg-success { background-color: #d1fae5; color: #065f46; border-color: #a7f3d0; }
+	.msg-error { background-color: #fee2e2; color: #991b1b; border-color: #fecaca; }
+
+	/* Estilo de fila de enlace */
+	.link-item {
+		padding: 1rem 1.5rem;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		transition: background-color 0.2s;
 	}
-	.url-cell {
-		max-width: 150px;
+	.link-item:hover {
+		background-color: hsl(var(--accent) / 0.4);
+	}
+	.link-info {
+		display: flex;
+		flex-direction: column;
+		min-width: 0;
+	}
+	.link-slug {
+		font-weight: 700;
+		font-size: 1rem;
+		color: hsl(var(--foreground));
+	}
+	.link-url {
+		font-size: 0.75rem;
+		color: hsl(var(--muted-foreground));
+		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-	.empty-msg {
-		color: #64748b;
-		text-align: center;
-		padding: 1rem;
+		max-width: 300px;
 	}
 </style>
 
@@ -197,30 +210,22 @@ import Layout from '../layouts/Layout.astro';
 	const logoutBtn = document.getElementById('logout-btn') as HTMLButtonElement;
 	const exportBtn = document.getElementById('export-btn') as HTMLButtonElement;
 	const importFile = document.getElementById('import-file') as HTMLInputElement;
-	const linksTable = document.getElementById('links-table') as HTMLTableElement;
-	const linksBody = document.getElementById('links-body') as HTMLTableSectionElement;
-	const emptyMsg = document.querySelector('.empty-msg') as HTMLParagraphElement;
+	const linksList = document.getElementById('links-list') as HTMLDivElement;
+	const loadingState = document.getElementById('loading-state') as HTMLDivElement;
+	const emptyState = document.getElementById('empty-state') as HTMLDivElement;
 
-	// Cargar al inicio
 	document.addEventListener('DOMContentLoaded', loadLinks);
 
-	async function logout() {
-		// Para cerrar sesión simplemente borramos la cookie (esto se puede hacer por API o por JS si no es HttpOnly)
-		// Como es HttpOnly, lo haremos por una API simple o redirigiendo a un logout
-		document.cookie = "auth_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-		window.location.href = '/login';
-	}
-	
 	logoutBtn.addEventListener('click', async () => {
-		// Llamamos a una api de logout para limpiar la cookie httponly
 		await fetch('/api/logout', { method: 'POST' });
 		window.location.href = '/login';
 	});
 
 	form.addEventListener('submit', async (e) => {
 		e.preventDefault();
-		message.className = 'hidden';
+		message.classList.add('hidden');
 		submitBtn.disabled = true;
+		submitBtn.textContent = 'Generando...';
 
 		const formData = new FormData(form);
 		const data = Object.fromEntries(formData);
@@ -235,23 +240,31 @@ import Layout from '../layouts/Layout.astro';
 			const result = await response.json();
 
 			if (response.ok) {
-				message.className = 'success';
-				message.innerHTML = `¡Creado! <a href="/${data.slug}" target="_blank">link.inled.es/${data.slug}</a>`;
+				message.className = 'mt-6 p-4 rounded-lg text-sm text-center font-medium border msg-success';
+				message.innerHTML = `¡Enlace creado! <a href="/${data.slug}" target="_blank" class="underline font-bold">link.inled.es/${data.slug}</a>`;
+				message.classList.remove('hidden');
 				form.reset();
 				loadLinks();
 			} else {
-				message.className = 'error';
+				message.className = 'mt-6 p-4 rounded-lg text-sm text-center font-medium border msg-error';
 				message.textContent = result.error;
+				message.classList.remove('hidden');
 			}
 		} catch (error) {
-			message.className = 'error';
-			message.textContent = 'Error de conexión';
+			message.className = 'mt-6 p-4 rounded-lg text-sm text-center font-medium border msg-error';
+			message.textContent = 'Error al conectar con el servidor.';
+			message.classList.remove('hidden');
 		} finally {
 			submitBtn.disabled = false;
+			submitBtn.textContent = 'Generar Enlace';
 		}
 	});
 
 	async function loadLinks() {
+		loadingState.classList.remove('hidden');
+		linksList.classList.add('hidden');
+		emptyState.classList.add('hidden');
+
 		try {
 			const response = await fetch('/api/manage', {
 				method: 'POST',
@@ -267,35 +280,44 @@ import Layout from '../layouts/Layout.astro';
 			}
 		} catch (e) {
 			console.error('Error al cargar enlaces');
+		} finally {
+			loadingState.classList.add('hidden');
 		}
 	}
 
 	function renderLinks(links: any[]) {
-		linksBody.innerHTML = '';
+		linksList.innerHTML = '';
 		if (links.length === 0) {
-			linksTable.classList.add('hidden');
-			emptyMsg.classList.remove('hidden');
-			emptyMsg.textContent = 'No hay enlaces.';
+			emptyState.classList.remove('hidden');
 			return;
 		}
 
-		linksTable.classList.remove('hidden');
-		emptyMsg.classList.add('hidden');
+		linksList.classList.remove('hidden');
 
 		links.forEach(link => {
-			const tr = document.createElement('tr');
-			tr.innerHTML = `
-				<td><strong>/${link.slug}</strong></td>
-				<td class="url-cell">${link.url}</td>
-				<td><button class="delete-btn" data-id="${link.id}">Borrar</button></td>
+			const item = document.createElement('div');
+			item.className = "link-item";
+			item.innerHTML = `
+				<div class="link-info">
+					<span class="link-slug">/${link.slug}</span>
+					<span class="link-url" title="${link.url}">${link.url}</span>
+				</div>
+				<div class="link-actions">
+					<button class="delete-btn btn btn-outline btn-destructive h-8 px-3 text-xs" data-id="${link.id}">Eliminar</button>
+				</div>
 			`;
-			linksBody.appendChild(tr);
+			linksList.appendChild(item);
 		});
 
 		document.querySelectorAll('.delete-btn').forEach(btn => {
 			btn.addEventListener('click', async (e) => {
-				if (!confirm('¿Borrar?')) return;
-				const id = (e.target as HTMLButtonElement).dataset.id;
+				const id = (e.currentTarget as HTMLButtonElement).dataset.id;
+				if (!confirm(`¿Eliminar enlace? Esta acción no se puede deshacer.`)) return;
+				
+				const btnEl = e.currentTarget as HTMLButtonElement;
+				btnEl.disabled = true;
+				btnEl.textContent = '...';
+
 				await fetch('/api/manage', {
 					method: 'POST',
 					body: JSON.stringify({ action: 'delete', data: { id } }),
@@ -319,7 +341,7 @@ import Layout from '../layouts/Layout.astro';
 			const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(result.links, null, 2));
 			const downloadAnchorNode = document.createElement('a');
 			downloadAnchorNode.setAttribute("href",     dataStr);
-			downloadAnchorNode.setAttribute("download", "links_export.json");
+			downloadAnchorNode.setAttribute("download", `links_backup_${new Date().toISOString().split('T')[0]}.json`);
 			downloadAnchorNode.click();
 			downloadAnchorNode.remove();
 		}
@@ -338,11 +360,11 @@ import Layout from '../layouts/Layout.astro';
 					headers: { 'Content-Type': 'application/json' }
 				});
 				if (response.ok) {
-					alert('Importado');
+					alert('Base de datos importada correctamente.');
 					loadLinks();
 				}
 			} catch (err) {
-				alert('JSON inválido');
+				alert('El archivo JSON no es válido.');
 			}
 		};
 		reader.readAsText(file);
