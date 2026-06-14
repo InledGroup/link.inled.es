@@ -1,0 +1,115 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Login - link.inled.es">
+	<div class="card">
+		<h1>Acceso Restringido</h1>
+		<p class="subtitle">Introduce la contraseña de administrador</p>
+		
+		<form id="login-form">
+			<div class="field">
+				<label for="password">Contraseña</label>
+				<input type="password" id="password" name="password" required autofocus />
+			</div>
+			<button type="submit" id="login-btn">Entrar</button>
+		</form>
+
+		<div id="message" class="hidden"></div>
+	</div>
+</Layout>
+
+<style>
+	.card {
+		background: var(--white);
+		padding: 2rem;
+		border-radius: 1rem;
+		box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+	}
+	h1 {
+		font-size: 1.5rem;
+		margin-bottom: 0.5rem;
+	}
+	.subtitle {
+		color: #64748b;
+		font-size: 0.9rem;
+		margin-bottom: 2rem;
+	}
+	form {
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+	}
+	.field {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+	label {
+		font-weight: 600;
+		font-size: 0.875rem;
+	}
+	input {
+		padding: 0.75rem;
+		border: 1px solid var(--border);
+		border-radius: 0.5rem;
+		font-size: 1rem;
+	}
+	button {
+		background: var(--primary);
+		color: white;
+		border: none;
+		padding: 1rem;
+		border-radius: 0.5rem;
+		font-weight: 700;
+		cursor: pointer;
+	}
+	#message {
+		margin-top: 1.5rem;
+		padding: 1rem;
+		border-radius: 0.5rem;
+		font-size: 0.9rem;
+		text-align: center;
+		background: #fee2e2;
+		color: #991b1b;
+	}
+	.hidden {
+		display: none;
+	}
+</style>
+
+<script>
+	const form = document.getElementById('login-form') as HTMLFormElement;
+	const message = document.getElementById('message') as HTMLDivElement;
+	const btn = document.getElementById('login-btn') as HTMLButtonElement;
+
+	form.addEventListener('submit', async (e) => {
+		e.preventDefault();
+		message.classList.add('hidden');
+		btn.disabled = true;
+		btn.textContent = 'Verificando...';
+
+		const password = (document.getElementById('password') as HTMLInputElement).value;
+
+		try {
+			const res = await fetch('/api/login', {
+				method: 'POST',
+				body: JSON.stringify({ password }),
+				headers: { 'Content-Type': 'application/json' }
+			});
+
+			if (res.ok) {
+				window.location.href = '/';
+			} else {
+				message.classList.remove('hidden');
+				message.textContent = 'Contraseña incorrecta';
+			}
+		} catch (error) {
+			message.classList.remove('hidden');
+			message.textContent = 'Error de conexión';
+		} finally {
+			btn.disabled = false;
+			btn.textContent = 'Entrar';
+		}
+	});
+</script>

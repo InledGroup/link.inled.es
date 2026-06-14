@@ -1,5 +1,7 @@
 ---
 // src/pages/[slug].astro
+import { env } from 'cloudflare:workers';
+
 export const partial = true;
 
 const { slug } = Astro.params;
@@ -8,14 +10,6 @@ if (!slug) {
 	return Astro.redirect('/');
 }
 
-// @ts-ignore
-const runtime = Astro.locals.runtime;
-if (!runtime) {
-	console.error('Error: locals.runtime no disponible en [slug].astro');
-	return new Response('Error interno: Configuración de Cloudflare no detectada', { status: 500 });
-}
-
-const env = runtime.env;
 const db = env.link_db;
 
 if (!db) {

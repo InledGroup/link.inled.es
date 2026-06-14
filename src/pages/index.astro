@@ -4,9 +4,14 @@ import Layout from '../layouts/Layout.astro';
 
 <Layout title="link.inled.es - Acortador">
 	<div class="container">
+		<div class="header">
+			<h1>link.inled.es</h1>
+			<button id="logout-btn" class="secondary">Cerrar Sesión</button>
+		</div>
+
 		<div class="card">
-			<h1>Acortar Enlace</h1>
-			<p class="subtitle">Personaliza tu link corto para link.inled.es</p>
+			<h2>Acortar Enlace</h2>
+			<p class="subtitle">Personaliza tu link corto</p>
 			
 			<form id="shorten-form">
 				<div class="field">
@@ -22,11 +27,6 @@ import Layout from '../layouts/Layout.astro';
 					</div>
 				</div>
 
-				<div class="field">
-					<label for="password">Contraseña de administrador</label>
-					<input type="password" id="password" name="password" required />
-				</div>
-
 				<button type="submit" id="submit-btn">Crear enlace acortado</button>
 			</form>
 
@@ -36,7 +36,7 @@ import Layout from '../layouts/Layout.astro';
 		<div class="card management">
 			<div class="manage-header">
 				<h2>Gestión de Enlaces</h2>
-				<button id="refresh-btn" class="secondary">Cargar / Refrescar Lista</button>
+				<button id="refresh-btn" class="secondary">Refrescar Lista</button>
 			</div>
 			
 			<div class="manage-actions">
@@ -46,7 +46,6 @@ import Layout from '../layouts/Layout.astro';
 			</div>
 
 			<div id="links-list-container">
-				<p class="empty-msg">Pulsa "Cargar Lista" y pon tu contraseña arriba para ver los enlaces.</p>
 				<table id="links-table" class="hidden">
 					<thead>
 						<tr>
@@ -57,6 +56,7 @@ import Layout from '../layouts/Layout.astro';
 					</thead>
 					<tbody id="links-body"></tbody>
 				</table>
+				<p class="empty-msg">Cargando enlaces...</p>
 			</div>
 		</div>
 	</div>
@@ -69,14 +69,16 @@ import Layout from '../layouts/Layout.astro';
 		gap: 2rem;
 		width: 100%;
 	}
+	.header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
 	.card {
 		background: var(--white);
 		padding: 2rem;
 		border-radius: 1rem;
 		box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-	}
-	.management {
-		margin-top: 1rem;
 	}
 	.manage-header {
 		display: flex;
@@ -89,14 +91,12 @@ import Layout from '../layouts/Layout.astro';
 		gap: 0.5rem;
 		margin-bottom: 1.5rem;
 	}
-	h1, h2 {
-		font-size: 1.5rem;
-		margin-bottom: 0.5rem;
-	}
+	h1 { font-size: 1.8rem; }
+	h2 { font-size: 1.3rem; margin-bottom: 0.5rem; }
 	.subtitle {
 		color: #64748b;
 		font-size: 0.9rem;
-		margin-bottom: 2rem;
+		margin-bottom: 1.5rem;
 	}
 	form {
 		display: flex;
@@ -117,11 +117,6 @@ import Layout from '../layouts/Layout.astro';
 		border: 1px solid var(--border);
 		border-radius: 0.5rem;
 		font-size: 1rem;
-		transition: border-color 0.2s;
-	}
-	input:focus {
-		outline: none;
-		border-color: var(--primary);
 	}
 	.slug-input {
 		display: flex;
@@ -134,7 +129,6 @@ import Layout from '../layouts/Layout.astro';
 	.slug-input span {
 		color: #64748b;
 		font-size: 0.9rem;
-		white-space: nowrap;
 	}
 	.slug-input input {
 		border: none;
@@ -149,30 +143,17 @@ import Layout from '../layouts/Layout.astro';
 		border-radius: 0.5rem;
 		font-weight: 700;
 		cursor: pointer;
-		transition: background 0.2s;
 		text-align: center;
-		text-decoration: none;
-		display: inline-block;
-	}
-	button:hover {
-		background: var(--primary-hover);
 	}
 	button.secondary {
 		background: #64748b;
 		padding: 0.5rem 1rem;
 		font-size: 0.8rem;
 	}
-	button.secondary:hover {
-		background: #475569;
-	}
 	button.delete-btn {
 		background: var(--error);
 		padding: 0.4rem 0.8rem;
 		font-size: 0.75rem;
-	}
-	button:disabled {
-		opacity: 0.7;
-		cursor: not-allowed;
 	}
 	#message {
 		margin-top: 1.5rem;
@@ -181,33 +162,22 @@ import Layout from '../layouts/Layout.astro';
 		font-size: 0.9rem;
 		text-align: center;
 	}
-	#message.error {
-		background: #fee2e2;
-		color: #991b1b;
-	}
-	#message.success {
-		background: #d1fae5;
-		color: #065f46;
-	}
-	.hidden {
-		display: none;
-	}
+	#message.error { background: #fee2e2; color: #991b1b; }
+	#message.success { background: #d1fae5; color: #065f46; }
+	.hidden { display: none; }
 	table {
 		width: 100%;
 		border-collapse: collapse;
 		margin-top: 1rem;
-		font-size: 0.9rem;
+		font-size: 0.85rem;
 	}
 	th, td {
 		text-align: left;
 		padding: 0.75rem;
 		border-bottom: 1px solid var(--border);
 	}
-	th {
-		background: #f8fafc;
-	}
 	.url-cell {
-		max-width: 200px;
+		max-width: 150px;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
@@ -215,7 +185,7 @@ import Layout from '../layouts/Layout.astro';
 	.empty-msg {
 		color: #64748b;
 		text-align: center;
-		padding: 2rem;
+		padding: 1rem;
 	}
 </style>
 
@@ -224,19 +194,33 @@ import Layout from '../layouts/Layout.astro';
 	const message = document.getElementById('message') as HTMLDivElement;
 	const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
 	const refreshBtn = document.getElementById('refresh-btn') as HTMLButtonElement;
+	const logoutBtn = document.getElementById('logout-btn') as HTMLButtonElement;
 	const exportBtn = document.getElementById('export-btn') as HTMLButtonElement;
 	const importFile = document.getElementById('import-file') as HTMLInputElement;
 	const linksTable = document.getElementById('links-table') as HTMLTableElement;
 	const linksBody = document.getElementById('links-body') as HTMLTableSectionElement;
 	const emptyMsg = document.querySelector('.empty-msg') as HTMLParagraphElement;
 
-	const getPassword = () => (document.getElementById('password') as HTMLInputElement).value;
+	// Cargar al inicio
+	document.addEventListener('DOMContentLoaded', loadLinks);
+
+	async function logout() {
+		// Para cerrar sesión simplemente borramos la cookie (esto se puede hacer por API o por JS si no es HttpOnly)
+		// Como es HttpOnly, lo haremos por una API simple o redirigiendo a un logout
+		document.cookie = "auth_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+		window.location.href = '/login';
+	}
+	
+	logoutBtn.addEventListener('click', async () => {
+		// Llamamos a una api de logout para limpiar la cookie httponly
+		await fetch('/api/logout', { method: 'POST' });
+		window.location.href = '/login';
+	});
 
 	form.addEventListener('submit', async (e) => {
 		e.preventDefault();
 		message.className = 'hidden';
 		submitBtn.disabled = true;
-		submitBtn.textContent = 'Procesando...';
 
 		const formData = new FormData(form);
 		const data = Object.fromEntries(formData);
@@ -252,44 +236,37 @@ import Layout from '../layouts/Layout.astro';
 
 			if (response.ok) {
 				message.className = 'success';
-				message.innerHTML = `¡Éxito! Tu enlace es: <a href="/${data.slug}" target="_blank">link.inled.es/${data.slug}</a>`;
+				message.innerHTML = `¡Creado! <a href="/${data.slug}" target="_blank">link.inled.es/${data.slug}</a>`;
 				form.reset();
-				loadLinks(); // Recargar lista
+				loadLinks();
 			} else {
 				message.className = 'error';
-				message.textContent = result.error || 'Ocurrió un error inesperado.';
+				message.textContent = result.error;
 			}
 		} catch (error) {
 			message.className = 'error';
-			message.textContent = 'Error de conexión.';
+			message.textContent = 'Error de conexión';
 		} finally {
 			submitBtn.disabled = false;
-			submitBtn.textContent = 'Crear enlace acortado';
 		}
 	});
 
 	async function loadLinks() {
-		const password = getPassword();
-		if (!password) {
-			alert('Por favor, introduce la contraseña en el formulario arriba para gestionar los enlaces.');
-			return;
-		}
-
 		try {
 			const response = await fetch('/api/manage', {
 				method: 'POST',
-				body: JSON.stringify({ action: 'list', password }),
+				body: JSON.stringify({ action: 'list' }),
 				headers: { 'Content-Type': 'application/json' }
 			});
 			const result = await response.json();
 			
 			if (response.ok) {
 				renderLinks(result.links);
-			} else {
-				alert(result.error);
+			} else if (response.status === 401) {
+				window.location.href = '/login';
 			}
 		} catch (e) {
-			alert('Error al cargar enlaces');
+			console.error('Error al cargar enlaces');
 		}
 	}
 
@@ -298,7 +275,7 @@ import Layout from '../layouts/Layout.astro';
 		if (links.length === 0) {
 			linksTable.classList.add('hidden');
 			emptyMsg.classList.remove('hidden');
-			emptyMsg.textContent = 'No hay enlaces creados todavía.';
+			emptyMsg.textContent = 'No hay enlaces.';
 			return;
 		}
 
@@ -310,27 +287,21 @@ import Layout from '../layouts/Layout.astro';
 			tr.innerHTML = `
 				<td><strong>/${link.slug}</strong></td>
 				<td class="url-cell">${link.url}</td>
-				<td>
-					<button class="delete-btn" data-id="${link.id}">Borrar</button>
-				</td>
+				<td><button class="delete-btn" data-id="${link.id}">Borrar</button></td>
 			`;
 			linksBody.appendChild(tr);
 		});
 
-		// Eventos de borrado
 		document.querySelectorAll('.delete-btn').forEach(btn => {
 			btn.addEventListener('click', async (e) => {
-				if (!confirm('¿Seguro que quieres borrar este enlace?')) return;
+				if (!confirm('¿Borrar?')) return;
 				const id = (e.target as HTMLButtonElement).dataset.id;
-				const password = getPassword();
-				
-				const res = await fetch('/api/manage', {
+				await fetch('/api/manage', {
 					method: 'POST',
-					body: JSON.stringify({ action: 'delete', password, data: { id } }),
+					body: JSON.stringify({ action: 'delete', data: { id } }),
 					headers: { 'Content-Type': 'application/json' }
 				});
-				if (res.ok) loadLinks();
-				else alert('Error al borrar');
+				loadLinks();
 			});
 		});
 	}
@@ -338,10 +309,9 @@ import Layout from '../layouts/Layout.astro';
 	refreshBtn.addEventListener('click', loadLinks);
 
 	exportBtn.addEventListener('click', async () => {
-		const password = getPassword();
 		const response = await fetch('/api/manage', {
 			method: 'POST',
-			body: JSON.stringify({ action: 'export', password }),
+			body: JSON.stringify({ action: 'export' }),
 			headers: { 'Content-Type': 'application/json' }
 		});
 		const result = await response.json();
@@ -350,37 +320,29 @@ import Layout from '../layouts/Layout.astro';
 			const downloadAnchorNode = document.createElement('a');
 			downloadAnchorNode.setAttribute("href",     dataStr);
 			downloadAnchorNode.setAttribute("download", "links_export.json");
-			document.body.appendChild(downloadAnchorNode);
 			downloadAnchorNode.click();
 			downloadAnchorNode.remove();
-		} else {
-			alert(result.error);
 		}
 	});
 
 	importFile.addEventListener('change', async (e) => {
 		const file = (e.target as HTMLInputElement).files?.[0];
 		if (!file) return;
-
 		const reader = new FileReader();
 		reader.onload = async (event) => {
 			try {
 				const data = JSON.parse(event.target?.result as string);
-				const password = getPassword();
 				const response = await fetch('/api/manage', {
 					method: 'POST',
-					body: JSON.stringify({ action: 'import', password, data }),
+					body: JSON.stringify({ action: 'import', data }),
 					headers: { 'Content-Type': 'application/json' }
 				});
 				if (response.ok) {
-					alert('Importación completada con éxito');
+					alert('Importado');
 					loadLinks();
-				} else {
-					const err = await response.json();
-					alert('Error al importar: ' + err.error);
 				}
 			} catch (err) {
-				alert('Archivo JSON inválido');
+				alert('JSON inválido');
 			}
 		};
 		reader.readAsText(file);

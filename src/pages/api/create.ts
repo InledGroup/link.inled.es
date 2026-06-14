@@ -1,31 +1,22 @@
 import type { APIRoute } from 'astro';
+import { env } from 'cloudflare:workers';
 
-export const POST: APIRoute = async ({ request, locals }) => {
+export const POST: APIRoute = async ({ request, cookies }) => {
 	try {
-		const { url, slug, password } = await request.json();
-
-		if (!url || !slug || !password) {
-			return new Response(JSON.stringify({ error: 'Todos los campos son obligatorios' }), { status: 400 });
+		// Verificar sesión
+		if (!cookies.has('auth_session')) {
+			return new Response(JSON.stringify({ error: 'No autorizado' }), { status: 401 });
 		}
 
-		// @ts-ignore
-		const runtime = locals.runtime;
-		if (!runtime) {
-			return new Response(JSON.stringify({ error: 'Runtime de Cloudflare no detectado' }), { status: 500 });
+		const { url, slug } = await request.json();
+
+		if (!url || !slug) {
+			return new Response(JSON.stringify({ error: 'URL y Slug son obligatorios' }), { status: 400 });
 		}
 
-		const env = runtime.env;
-		const adminPassword = env.ADMIN_PASSWORD;
-
-		if (!adminPassword) {
-			return new Response(JSON.stringify({ error: 'Contraseña de administrador no configurada' }), { status: 500 });
-		}
-
-		if (password !== adminPassword) {
-			return new Response(JSON.stringify({ error: 'Contraseña incorrecta' }), { status: 403 });
-		}
-
+		// Usando la importación directa recomendada por el usuario para Astro v6
 		const db = env.link_db;
+
 		if (!db) {
 			return new Response(JSON.stringify({ error: 'Base de datos no disponible' }), { status: 500 });
 		}
@@ -43,6 +34,6 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
 		return new Response(JSON.stringify({ success: true }), { status: 200 });
 	} catch (error: any) {
-		return new Response(JSON.stringify({ error: `Error interno: ${error.message}` }), { status: 500 });
+		return new Response(JSON.stringify({ error: error.message }), { status: 500 });
 	}
 };

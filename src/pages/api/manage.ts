@@ -1,21 +1,16 @@
 import type { APIRoute } from 'astro';
+import { env } from 'cloudflare:workers';
 
-export const POST: APIRoute = async ({ request, locals }) => {
+export const POST: APIRoute = async ({ request, cookies }) => {
 	try {
-		const { action, password, data } = await request.json();
-
-		// @ts-ignore
-		const runtime = locals.runtime;
-		if (!runtime) {
-			return new Response(JSON.stringify({ error: 'Runtime no disponible' }), { status: 500 });
+		// Verificar sesión
+		if (!cookies.has('auth_session')) {
+			return new Response(JSON.stringify({ error: 'No autorizado' }), { status: 401 });
 		}
 
-		const env = runtime.env;
-		if (password !== env.ADMIN_PASSWORD) {
-			return new Response(JSON.stringify({ error: 'Contraseña incorrecta' }), { status: 403 });
-		}
-
+		const { action, data } = await request.json();
 		const db = env.link_db;
+
 		if (!db) {
 			return new Response(JSON.stringify({ error: 'Base de datos no disponible' }), { status: 500 });
 		}
