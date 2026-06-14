@@ -1,0 +1,57 @@
+---
+interface Props {
+	title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<!doctype html>
+<html lang="es">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="description" content="Acortador de enlaces link.inled.es" />
+		<meta name="viewport" content="width=device-width" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="generator" content={Astro.generator} />
+		<title>{title}</title>
+	</head>
+	<body>
+		<main>
+			<slot />
+		</main>
+	</body>
+</html>
+<style is:global>
+	:root {
+		--primary: #2563eb;
+		--primary-hover: #1d4ed8;
+		--bg: #f8fafc;
+		--text: #1e293b;
+		--border: #e2e8f0;
+		--white: #ffffff;
+		--error: #ef4444;
+		--success: #10b981;
+	}
+	* {
+		box-sizing: border-box;
+		margin: 0;
+		padding: 0;
+	}
+	html {
+		font-family: system-ui, -apple-system, sans-serif;
+		background: var(--bg);
+		color: var(--text);
+	}
+	body {
+		min-height: 100vh;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		padding: 1rem;
+	}
+	main {
+		width: 100%;
+		max-width: 500px;
+	}
+</style>

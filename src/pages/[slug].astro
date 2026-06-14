@@ -1,0 +1,24 @@
+---
+// src/pages/[slug].astro
+export const partial = true; // No necesitamos layout para una redirección
+
+const { slug } = Astro.params;
+
+if (!slug) {
+	return Astro.redirect('/');
+}
+
+const env = Astro.locals.runtime.env;
+const db = env.link_db;
+
+const result = await db.prepare('SELECT url FROM links WHERE slug = ?')
+	.bind(slug.toLowerCase().trim())
+	.first();
+
+if (result && result.url) {
+	return Astro.redirect(result.url, 302); // 302 para redirección temporal
+}
+
+// Si no existe, podemos mostrar un 404 o redirigir al inicio
+return new Response('Enlace no encontrado', { status: 404 });
+---
