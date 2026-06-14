@@ -2,369 +2,769 @@
 import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout title="link.inled.es - Acortador">
-	<div class="space-y-10 w-full">
-		<!-- Header Centrado -->
-		<header class="flex flex-col items-center space-y-4">
-			<img src="https://hosted.inled.es/inled-logo-full.png" alt="Inled Logo" height="40" class="h-10" />
-			<div class="flex items-center space-x-4">
-				<h1 class="text-sm font-medium text-muted-foreground uppercase tracking-widest">Link Shortener</h1>
-				<span class="text-border">|</span>
-				<button id="logout-btn" class="text-xs font-semibold hover:text-foreground text-muted-foreground transition-colors">Cerrar Sesión</button>
+<Layout title="Panel de Control - link.inled.es">
+	<div class="dashboard-shell">
+		<!-- Header / Cabecera -->
+		<header class="main-header">
+			<div class="header-left">
+				<img src="https://hosted.inled.es/inled-logo-full.png" alt="Inled" class="logo-img" />
+				<div class="badge-admin">Admin</div>
+			</div>
+			<div class="header-right">
+				<button id="logout-btn" class="btn btn-ghost">
+					<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+					Cerrar Sesión
+				</button>
 			</div>
 		</header>
 
-		<div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-			<!-- Columna Izquierda: Acciones (4/12) -->
-			<div class="lg:col-span-5 space-y-8">
-				<!-- Card Crear Link -->
-				<div class="card p-8 relative overflow-hidden">
-					<div class="absolute top-0 left-0 w-1 h-full bg-primary"></div>
-					<div class="mb-8">
-						<h2 class="text-2xl font-bold tracking-tight mb-1">Acortar Enlace</h2>
-						<p class="text-sm text-muted-foreground">Genera un nuevo link personalizado al instante.</p>
+		<!-- Main Layout Grid / Grid Principal -->
+		<div class="dashboard-grid">
+			<!-- Sidebar / Lateral -->
+			<aside class="sidebar">
+				<section class="card creation-card">
+					<div class="card-header">
+						<h2>Nuevo Enlace</h2>
+						<p>Crea redirecciones personalizadas al instante.</p>
 					</div>
 					
-					<form id="shorten-form" class="space-y-6">
-						<div class="space-y-2">
-							<label for="url" class="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">URL de Destino</label>
-							<input type="url" id="url" name="url" required placeholder="https://ejemplo.com/mi-pagina-muy-larga" />
+					<form id="shorten-form" class="creation-form">
+						<div class="form-control">
+							<label for="url">URL de Destino</label>
+							<input type="url" id="url" name="url" required placeholder="https://ejemplo.com/pagina" />
 						</div>
 
-						<div class="space-y-2">
-							<label for="slug" class="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Slug del enlace</label>
-							<div class="flex items-center">
-								<div class="bg-muted px-3 h-11 flex items-center border border-r-0 border-input rounded-l-md text-sm font-medium text-muted-foreground">
-									link.inled.es/
-								</div>
-								<input type="text" id="slug" name="slug" required placeholder="mi-link" class="rounded-l-none" />
+						<div class="form-control">
+							<label for="slug">Slug Personalizado</label>
+							<div class="slug-input-wrapper">
+								<span class="slug-prefix">/</span>
+								<input type="text" id="slug" name="slug" required placeholder="mi-link" />
 							</div>
 						</div>
 
-						<button type="submit" id="submit-btn" class="btn btn-primary w-full text-base">Generar Enlace</button>
+						<button type="submit" id="submit-btn" class="btn btn-primary w-full">
+							<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+							Crear Enlace
+						</button>
 					</form>
+					<div id="status-msg" class="hidden status-alert"></div>
+				</section>
 
-					<div id="message" class="hidden mt-6 p-4 rounded-lg text-sm text-center font-medium border animate-in fade-in slide-in-from-top-2 duration-300"></div>
-				</div>
-
-				<!-- Card Backup -->
-				<div class="card p-6 bg-muted/30">
-					<div class="mb-4">
-						<h2 class="text-lg font-bold tracking-tight mb-1">Copia de Seguridad</h2>
-						<p class="text-xs text-muted-foreground">Exporta o importa la base de datos de enlaces.</p>
-					</div>
-					<div class="flex gap-3">
-						<button id="export-btn" class="btn btn-outline flex-1 bg-card">Exportar JSON</button>
-						<label for="import-file" class="btn btn-outline flex-1 bg-card">Importar JSON</label>
+				<section class="card backup-card">
+					<h3>Mantenimiento</h3>
+					<div class="backup-actions">
+						<button id="export-btn" class="btn btn-outline flex-1">
+							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+							Exportar
+						</button>
+						<label for="import-file" class="btn btn-outline flex-1 cursor-pointer">
+							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+							Importar
+						</label>
 						<input type="file" id="import-file" accept=".json" style="display: none;" />
 					</div>
-				</div>
-			</div>
+				</section>
+			</aside>
 
-			<!-- Columna Derecha: Gestión (7/12) -->
-			<div class="lg:col-span-7 flex flex-col space-y-4">
-				<div class="flex justify-between items-end px-2">
-					<div>
-						<h2 class="text-2xl font-bold tracking-tight">Gestión de Enlaces</h2>
-						<p class="text-sm text-muted-foreground">Listado de links activos y redirecciones.</p>
+			<!-- Content Panel / Panel de Contenido -->
+			<main class="content-panel">
+				<div class="panel-header">
+					<div class="panel-title">
+						<h2>Enlaces Activos</h2>
+						<p>Gestión en tiempo real de tu base de datos D1.</p>
 					</div>
-					<button id="refresh-btn" class="btn btn-outline h-10 w-10 p-0 rounded-full hover:rotate-180 transition-transform duration-500" title="Refrescar lista">
-						🔄
+					<button id="refresh-btn" class="refresh-btn" title="Actualizar lista">
+						<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
 					</button>
 				</div>
 
-				<div class="card overflow-hidden">
-					<div id="links-container" class="min-h-[400px]">
-						<div id="loading-state" class="p-20 text-center flex flex-col items-center space-y-4">
-							<div class="animate-spin text-2xl">⏳</div>
-							<p class="text-sm font-medium text-muted-foreground">Cargando enlaces de la base de datos...</p>
-						</div>
+				<div class="card table-card">
+					<div id="loader" class="loader-overlay hidden">
+						<div class="spinner"></div>
+						<p>Sincronizando...</p>
+					</div>
 
-						<div id="links-list" class="hidden divide-y divide-border">
-							<!-- Las filas se insertan aquí -->
-						</div>
+					<div id="links-container" class="table-responsive hidden">
+						<table class="links-table">
+							<thead>
+								<tr>
+									<th>Slug</th>
+									<th>URL de Destino</th>
+									<th class="text-right">Acciones</th>
+								</tr>
+							</thead>
+							<tbody id="links-tbody"></tbody>
+						</table>
+					</div>
 
-						<div id="empty-state" class="hidden p-20 text-center flex flex-col items-center space-y-4">
-							<div class="text-4xl">🔗</div>
-							<p class="text-sm font-medium text-muted-foreground">No hay enlaces creados todavía.</p>
-						</div>
+					<div id="empty" class="empty-state hidden">
+						<div class="empty-icon">🔗</div>
+						<h3>No hay enlaces activos</h3>
+						<p>Empieza creando uno nuevo en el panel lateral.</p>
 					</div>
 				</div>
+			</main>
+		</div>
+	</div>
+
+	<!-- Modal -->
+	<div id="modal" class="hidden modal-overlay">
+		<div class="card modal-content">
+			<div class="modal-header">
+				<div class="warning-icon">
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+				</div>
+				<h3>¿Eliminar enlace?</h3>
+			</div>
+			<p>Esta acción es irreversible. El enlace dejará de funcionar inmediatamente.</p>
+			<div class="modal-actions">
+				<button id="modal-cancel" class="btn btn-outline">Cancelar</button>
+				<button id="modal-confirm" class="btn btn-destructive">Confirmar Eliminación</button>
 			</div>
 		</div>
 	</div>
+
+	<!-- Toasts -->
+	<div id="toast-container" class="toast-container"></div>
 </Layout>
 
 <style>
-	.space-y-10 > * + * { margin-top: 2.5rem; }
-	.space-y-8 > * + * { margin-top: 2rem; }
-	.space-y-6 > * + * { margin-top: 1.5rem; }
-	.space-y-4 > * + * { margin-top: 1rem; }
-	.space-y-2 > * + * { margin-top: 0.5rem; }
-	.space-x-4 > * + * { margin-left: 1rem; }
-	.flex { display: flex; }
-	.flex-col { flex-direction: column; }
-	.flex-1 { flex: 1 1 0%; }
-	.items-center { align-items: center; }
-	.items-end { align-items: flex-end; }
-	.justify-between { justify-content: space-between; }
-	.justify-center { justify-content: center; }
-	.grid { display: grid; }
-	.gap-10 { gap: 2.5rem; }
-	.gap-3 { gap: 0.75rem; }
-	.w-full { width: 100%; }
-	.h-10 { height: 2.5rem; }
-	.h-11 { height: 2.75rem; }
-	.w-10 { width: 2.5rem; }
-	.p-0 { padding: 0; }
-	.p-4 { padding: 1rem; }
-	.p-6 { padding: 1.5rem; }
-	.p-8 { padding: 2rem; }
-	.p-20 { padding: 5rem; }
-	.px-2 { padding-left: 0.5rem; padding-right: 0.5rem; }
-	.px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
-	.ml-1 { margin-left: 0.25rem; }
-	.mb-1 { margin-bottom: 0.25rem; }
-	.mb-4 { margin-bottom: 1rem; }
-	.mb-8 { margin-bottom: 2rem; }
-	.mt-6 { margin-top: 1.5rem; }
-	.text-center { text-align: center; }
-	.text-2xl { font-size: 1.5rem; line-height: 2rem; }
-	.text-xl { font-size: 1.25rem; }
-	.text-lg { font-size: 1.125rem; }
-	.text-sm { font-size: 0.875rem; }
-	.text-xs { font-size: 0.75rem; }
-	.text-base { font-size: 1rem; }
-	.font-bold { font-weight: 700; }
-	.font-semibold { font-weight: 600; }
-	.font-medium { font-weight: 500; }
-	.uppercase { text-transform: uppercase; }
-	.tracking-tight { letter-spacing: -0.025em; }
-	.tracking-widest { letter-spacing: 0.1em; }
-	.tracking-wider { letter-spacing: 0.05em; }
-	.text-muted-foreground { color: hsl(var(--muted-foreground)); }
-	.text-destructive { color: hsl(var(--destructive)); }
-	.text-border { color: hsl(var(--border)); }
-	.bg-muted { background-color: hsl(var(--muted)); }
-	.bg-muted\/30 { background-color: hsl(var(--muted) / 0.3); }
-	.bg-card { background-color: hsl(var(--card)); }
-	.bg-primary { background-color: hsl(var(--primary)); }
-	.border-input { border-color: hsl(var(--input)); }
-	.border-r-0 { border-right-width: 0; }
-	.rounded-l-md { border-top-left-radius: var(--radius); border-bottom-left-radius: var(--radius); }
-	.rounded-l-none { border-top-left-radius: 0; border-bottom-left-radius: 0; }
-	.rounded-full { border-radius: 9999px; }
-	.overflow-hidden { overflow: hidden; }
-	.min-h-\[400px\] { min-height: 400px; }
-	.divide-y > * + * { border-top-width: 1px; }
-	.divide-border > * + * { border-color: hsl(var(--border)); }
-	.hidden { display: none; }
-	.animate-spin { animation: spin 1s linear infinite; }
-	@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-	
-	@media (min-width: 1024px) {
-		.lg\:grid-cols-12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
-		.lg\:col-span-5 { grid-column: span 5 / span 5; }
-		.lg\:col-span-7 { grid-column: span 7 / span 7; }
-	}
-
-	.msg-success { background-color: #d1fae5; color: #065f46; border-color: #a7f3d0; }
-	.msg-error { background-color: #fee2e2; color: #991b1b; border-color: #fecaca; }
-
-	/* Estilo de fila de enlace */
-	.link-item {
-		padding: 1rem 1.5rem;
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		transition: background-color 0.2s;
-	}
-	.link-item:hover {
-		background-color: hsl(var(--accent) / 0.4);
-	}
-	.link-info {
+	.dashboard-shell {
 		display: flex;
 		flex-direction: column;
-		min-width: 0;
+		gap: 2.5rem;
+		animation: fade-in 0.5s ease-out;
 	}
-	.link-slug {
+
+	@keyframes fade-in {
+		from { opacity: 0; transform: translateY(10px); }
+		to { opacity: 1; transform: translateY(0); }
+	}
+
+	/* Header Styles / Estilos de Cabecera */
+	.main-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding-bottom: 1.5rem;
+		border-bottom: 1px solid hsl(var(--border) / 0.6);
+	}
+
+	.header-left {
+		display: flex;
+		align-items: center;
+		gap: 1.25rem;
+	}
+
+	.logo-img {
+		height: 38px;
+		object-fit: contain;
+	}
+
+	.badge-admin {
+		font-size: 0.65rem;
+		font-weight: 800;
+		text-transform: uppercase;
+		letter-spacing: 0.1em;
+		background-color: hsl(var(--fg-main));
+		color: hsl(var(--bg-main));
+		padding: 0.35rem 0.75rem;
+		border-radius: 99px;
+	}
+
+	/* Grid Layout / Diseño de Cuadrícula */
+	.dashboard-grid {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 2.5rem;
+		align-items: start;
+	}
+
+	@media (min-width: 1024px) {
+		.dashboard-grid {
+			grid-template-columns: 360px 1fr;
+		}
+	}
+
+	/* Sidebar & Cards / Lateral y Tarjetas */
+	.sidebar {
+		display: flex;
+		flex-direction: column;
+		gap: 2rem;
+	}
+
+	.creation-card {
+		padding: 2rem;
+	}
+
+	.card-header {
+		margin-bottom: 2rem;
+	}
+
+	.card-header h2 {
+		font-size: 1.5rem;
+		margin-bottom: 0.5rem;
+	}
+
+	.card-header p {
+		font-size: 0.875rem;
+		color: hsl(var(--muted-fg));
+	}
+
+	.creation-form {
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+	}
+
+	.slug-input-wrapper {
+		display: flex;
+		position: relative;
+	}
+
+	.slug-prefix {
+		display: flex;
+		align-items: center;
+		padding: 0 1rem;
+		background-color: hsl(var(--muted));
+		border: 1px solid hsl(var(--border));
+		border-right: none;
+		border-radius: var(--radius-md) 0 0 var(--radius-md);
+		font-size: 0.875rem;
 		font-weight: 700;
-		font-size: 1rem;
-		color: hsl(var(--foreground));
+		color: hsl(var(--muted-fg));
 	}
-	.link-url {
+
+	.slug-input-wrapper input {
+		border-top-left-radius: 0;
+		border-bottom-left-radius: 0;
+	}
+
+	.backup-card {
+		padding: 1.5rem;
+		background-color: hsl(var(--muted) / 0.3);
+		border-style: dashed;
+	}
+
+	.backup-card h3 {
 		font-size: 0.75rem;
-		color: hsl(var(--muted-foreground));
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: hsl(var(--muted-fg));
+		margin-bottom: 1rem;
+	}
+
+	.backup-actions {
+		display: flex;
+		gap: 0.75rem;
+	}
+
+	/* Content Panel / Panel de Contenido */
+	.content-panel {
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+	}
+
+	.panel-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-end;
+		padding: 0 0.5rem;
+	}
+
+	.panel-title h2 {
+		font-size: 1.875rem;
+		margin-bottom: 0.25rem;
+	}
+
+	.panel-title p {
+		font-size: 0.875rem;
+		color: hsl(var(--muted-fg));
+	}
+
+	.refresh-btn {
+		width: 44px;
+		height: 44px;
+		border-radius: 50%;
+		border: 1px solid hsl(var(--border));
+		background-color: hsl(var(--card-bg));
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: hsl(var(--fg-main));
+		cursor: pointer;
+		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+		box-shadow: var(--shadow-sm);
+	}
+
+	.refresh-btn:hover {
+		background-color: hsl(var(--muted));
+		transform: rotate(180deg);
+		box-shadow: var(--shadow-md);
+	}
+
+	.table-card {
+		min-height: 500px;
+		position: relative;
+		overflow: hidden;
+	}
+
+	/* Links Table / Tabla de Enlaces */
+	.table-responsive {
+		width: 100%;
+		overflow-x: auto;
+	}
+
+	.links-table {
+		width: 100%;
+		border-collapse: collapse;
+		text-align: left;
+	}
+
+	.links-table thead tr {
+		background-color: hsl(var(--muted) / 0.4);
+		border-bottom: 1px solid hsl(var(--border));
+	}
+
+	.links-table th {
+		padding: 1.25rem 1.5rem;
+		font-size: 0.75rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: hsl(var(--muted-fg));
+	}
+
+	.links-table td {
+		padding: 1.25rem 1.5rem;
+		border-bottom: 1px solid hsl(var(--border) / 0.5);
+		font-size: 0.9375rem;
+	}
+
+	.links-table tr:last-child td {
+		border-bottom: none;
+	}
+
+	.links-table tr:hover {
+		background-color: hsl(var(--muted) / 0.2);
+	}
+
+	.slug-cell {
+		font-weight: 700;
+		color: hsl(var(--fg-main));
+	}
+
+	.url-cell {
+		max-width: 320px;
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
-		max-width: 300px;
+		color: hsl(var(--muted-fg));
+	}
+
+	.text-right { text-align: right; }
+
+	/* States / Estados */
+	.loader-overlay {
+		position: absolute;
+		inset: 0;
+		background-color: hsla(var(--card-bg), 0.8);
+		backdrop-filter: blur(2px);
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 1rem;
+		z-index: 10;
+	}
+
+	.spinner {
+		width: 32px;
+		height: 32px;
+		border: 3px solid hsl(var(--muted));
+		border-top-color: hsl(var(--primary));
+		border-radius: 50%;
+		animation: spin 0.8s linear infinite;
+	}
+
+	@keyframes spin { to { transform: rotate(360deg); } }
+
+	.empty-state {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		padding: 6rem 2rem;
+		text-align: center;
+	}
+
+	.empty-icon {
+		font-size: 4rem;
+		margin-bottom: 1.5rem;
+		opacity: 0.2;
+	}
+
+	.empty-state h3 {
+		font-size: 1.25rem;
+		margin-bottom: 0.5rem;
+	}
+
+	.empty-state p {
+		color: hsl(var(--muted-fg));
+	}
+
+	/* Modal / Ventana Modal */
+	.modal-overlay {
+		position: fixed;
+		inset: 0;
+		background-color: hsla(var(--fg-main), 0.4);
+		backdrop-filter: blur(4px);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 1.5rem;
+		z-index: 100;
+	}
+
+	.modal-content {
+		max-width: 440px;
+		width: 100%;
+		padding: 2.5rem;
+		text-align: center;
+		animation: modal-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+	}
+
+	@keyframes modal-in {
+		from { transform: scale(0.95) translateY(10px); opacity: 0; }
+		to { transform: scale(1) translateY(0); opacity: 1; }
+	}
+
+	.modal-header {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 1rem;
+		margin-bottom: 1rem;
+	}
+
+	.warning-icon {
+		width: 56px;
+		height: 56px;
+		border-radius: 50%;
+		background-color: hsla(var(--destructive), 0.1);
+		color: hsl(var(--destructive));
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.modal-content p {
+		color: hsl(var(--muted-fg));
+		margin-bottom: 2rem;
+	}
+
+	.modal-actions {
+		display: flex;
+		gap: 1rem;
+	}
+
+	.modal-actions .btn { flex: 1; }
+
+	/* Toasts / Notificaciones */
+	.toast-container {
+		position: fixed;
+		bottom: 2rem;
+		right: 2rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		z-index: 200;
+	}
+
+	.toast {
+		background-color: hsl(var(--fg-main));
+		color: hsl(var(--bg-main));
+		padding: 1rem 1.5rem;
+		border-radius: var(--radius-md);
+		font-size: 0.875rem;
+		font-weight: 600;
+		box-shadow: var(--shadow-lg);
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		animation: toast-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+	}
+
+	@keyframes toast-in {
+		from { transform: translateX(100%); opacity: 0; }
+		to { transform: translateX(0); opacity: 1; }
+	}
+
+	.status-alert {
+		margin-top: 1.5rem;
+		padding: 1rem;
+		border-radius: var(--radius-md);
+		font-size: 0.875rem;
+		font-weight: 600;
+		text-align: center;
+		border: 1px solid transparent;
+	}
+
+	.status-alert.success {
+		background-color: hsl(var(--success-bg));
+		border-color: hsla(var(--success), 0.2);
+		color: hsl(var(--success));
+	}
+
+	.status-alert.error {
+		background-color: #fef2f2;
+		border-color: #fecaca;
+		color: #991b1b;
 	}
 </style>
 
 <script>
+	// Type definitions / Definiciones de tipos
+	interface Link {
+		id: string;
+		slug: string;
+		url: string;
+	}
+
 	const form = document.getElementById('shorten-form') as HTMLFormElement;
-	const message = document.getElementById('message') as HTMLDivElement;
+	const statusMsg = document.getElementById('status-msg') as HTMLDivElement;
 	const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
 	const refreshBtn = document.getElementById('refresh-btn') as HTMLButtonElement;
 	const logoutBtn = document.getElementById('logout-btn') as HTMLButtonElement;
 	const exportBtn = document.getElementById('export-btn') as HTMLButtonElement;
 	const importFile = document.getElementById('import-file') as HTMLInputElement;
-	const linksList = document.getElementById('links-list') as HTMLDivElement;
-	const loadingState = document.getElementById('loading-state') as HTMLDivElement;
-	const emptyState = document.getElementById('empty-state') as HTMLDivElement;
+	
+	const loader = document.getElementById('loader') as HTMLDivElement;
+	const linksContainer = document.getElementById('links-container') as HTMLDivElement;
+	const linksTbody = document.getElementById('links-tbody') as HTMLTableSectionElement;
+	const emptyState = document.getElementById('empty') as HTMLDivElement;
 
+	const modal = document.getElementById('modal') as HTMLDivElement;
+	const modalCancel = document.getElementById('modal-cancel') as HTMLButtonElement;
+	const modalConfirm = document.getElementById('modal-confirm') as HTMLButtonElement;
+	const toastContainer = document.getElementById('toast-container') as HTMLDivElement;
+
+	let idToDelete: string | null = null;
+
+	// Initial load / Carga inicial
 	document.addEventListener('DOMContentLoaded', loadLinks);
 
+	/**
+	 * Muestra una notificación temporal / Shows a temporary notification
+	 */
+	function notify(text: string, icon = '✅') {
+		const toast = document.createElement('div');
+		toast.className = 'toast';
+		toast.innerHTML = `<span>${icon}</span> <span>${text}</span>`;
+		toastContainer.appendChild(toast);
+		
+		setTimeout(() => {
+			toast.style.opacity = '0';
+			toast.style.transform = 'translateX(20px)';
+			toast.style.transition = 'all 0.3s ease';
+			setTimeout(() => toast.remove(), 300);
+		}, 4000);
+	}
+
+	// Event Listeners / Escuchadores de eventos
+
 	logoutBtn.addEventListener('click', async () => {
-		await fetch('/api/logout', { method: 'POST' });
-		window.location.href = '/login';
+		try {
+			await fetch('/api/logout', { method: 'POST' });
+			window.location.href = '/login';
+		} catch (e) {
+			notify('Error al cerrar sesión', '❌');
+		}
 	});
 
 	form.addEventListener('submit', async (e) => {
 		e.preventDefault();
-		message.classList.add('hidden');
+		statusMsg.classList.add('hidden');
 		submitBtn.disabled = true;
-		submitBtn.textContent = 'Generando...';
+		submitBtn.innerHTML = '<div class="spinner" style="width:18px;height:18px;border-width:2px;"></div> Creando...';
 
 		const formData = new FormData(form);
 		const data = Object.fromEntries(formData);
 
 		try {
-			const response = await fetch('/api/create', {
+			const res = await fetch('/api/create', {
 				method: 'POST',
 				body: JSON.stringify(data),
 				headers: { 'Content-Type': 'application/json' }
 			});
-
-			const result = await response.json();
-
-			if (response.ok) {
-				message.className = 'mt-6 p-4 rounded-lg text-sm text-center font-medium border msg-success';
-				message.innerHTML = `¡Enlace creado! <a href="/${data.slug}" target="_blank" class="underline font-bold">link.inled.es/${data.slug}</a>`;
-				message.classList.remove('hidden');
+			const result = await res.json();
+			
+			if (res.ok) {
+				statusMsg.className = 'status-alert success';
+				statusMsg.textContent = '¡Enlace creado correctamente!';
+				statusMsg.classList.remove('hidden');
 				form.reset();
 				loadLinks();
+				notify('Redirección creada');
 			} else {
-				message.className = 'mt-6 p-4 rounded-lg text-sm text-center font-medium border msg-error';
-				message.textContent = result.error;
-				message.classList.remove('hidden');
+				statusMsg.className = 'status-alert error';
+				statusMsg.textContent = result.error || 'Ocurrió un error';
+				statusMsg.classList.remove('hidden');
 			}
-		} catch (error) {
-			message.className = 'mt-6 p-4 rounded-lg text-sm text-center font-medium border msg-error';
-			message.textContent = 'Error al conectar con el servidor.';
-			message.classList.remove('hidden');
+		} catch (e) {
+			notify('Error de servidor', '❌');
 		} finally {
 			submitBtn.disabled = false;
-			submitBtn.textContent = 'Generar Enlace';
+			submitBtn.innerHTML = `
+				<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+				Crear Enlace
+			`;
 		}
 	});
 
+	/**
+	 * Carga los enlaces desde la API / Loads links from the API
+	 */
 	async function loadLinks() {
-		loadingState.classList.remove('hidden');
-		linksList.classList.add('hidden');
-		emptyState.classList.add('hidden');
-
+		loader.classList.remove('hidden');
+		
 		try {
-			const response = await fetch('/api/manage', {
+			const res = await fetch('/api/manage', {
 				method: 'POST',
 				body: JSON.stringify({ action: 'list' }),
 				headers: { 'Content-Type': 'application/json' }
 			});
-			const result = await response.json();
-			
-			if (response.ok) {
-				renderLinks(result.links);
-			} else if (response.status === 401) {
+			const result = await res.json();
+			if (res.ok) {
+				render(result.links);
+			} else if (res.status === 401) {
 				window.location.href = '/login';
 			}
 		} catch (e) {
-			console.error('Error al cargar enlaces');
+			console.error('Fetch error');
+			notify('Error al cargar enlaces', '❌');
 		} finally {
-			loadingState.classList.add('hidden');
+			loader.classList.add('hidden');
 		}
 	}
 
-	function renderLinks(links: any[]) {
-		linksList.innerHTML = '';
+	/**
+	 * Renderiza la tabla de enlaces / Renders the links table
+	 */
+	function render(links: Link[]) {
+		linksTbody.innerHTML = '';
 		if (links.length === 0) {
+			linksContainer.classList.add('hidden');
 			emptyState.classList.remove('hidden');
 			return;
 		}
-
-		linksList.classList.remove('hidden');
-
+		
+		emptyState.classList.add('hidden');
+		linksContainer.classList.remove('hidden');
+		
 		links.forEach(link => {
-			const item = document.createElement('div');
-			item.className = "link-item";
-			item.innerHTML = `
-				<div class="link-info">
-					<span class="link-slug">/${link.slug}</span>
-					<span class="link-url" title="${link.url}">${link.url}</span>
-				</div>
-				<div class="link-actions">
-					<button class="delete-btn btn btn-outline btn-destructive h-8 px-3 text-xs" data-id="${link.id}">Eliminar</button>
-				</div>
+			const tr = document.createElement('tr');
+			tr.innerHTML = `
+				<td class="slug-cell">/${link.slug}</td>
+				<td class="url-cell" title="${link.url}">${link.url}</td>
+				<td class="text-right">
+					<button class="btn btn-destructive btn-delete" style="height:2rem; padding: 0 0.75rem; font-size: 0.7rem;" data-id="${link.id}">
+						Eliminar
+					</button>
+				</td>
 			`;
-			linksList.appendChild(item);
+			linksTbody.appendChild(tr);
 		});
 
-		document.querySelectorAll('.delete-btn').forEach(btn => {
-			btn.addEventListener('click', async (e) => {
-				const id = (e.currentTarget as HTMLButtonElement).dataset.id;
-				if (!confirm(`¿Eliminar enlace? Esta acción no se puede deshacer.`)) return;
-				
-				const btnEl = e.currentTarget as HTMLButtonElement;
-				btnEl.disabled = true;
-				btnEl.textContent = '...';
-
-				await fetch('/api/manage', {
-					method: 'POST',
-					body: JSON.stringify({ action: 'delete', data: { id } }),
-					headers: { 'Content-Type': 'application/json' }
-				});
-				loadLinks();
+		// Re-vincular botones de borrado / Re-bind delete buttons
+		document.querySelectorAll('.btn-delete').forEach(btn => {
+			btn.addEventListener('click', (e) => {
+				idToDelete = (e.currentTarget as HTMLButtonElement).dataset.id || null;
+				modal.classList.remove('hidden');
 			});
 		});
 	}
 
+	modalCancel.addEventListener('click', () => {
+		modal.classList.add('hidden');
+		idToDelete = null;
+	});
+
+	modalConfirm.addEventListener('click', async () => {
+		if (!idToDelete) return;
+		modalConfirm.disabled = true;
+		modalConfirm.textContent = 'Eliminando...';
+		
+		try {
+			const res = await fetch('/api/manage', {
+				method: 'POST',
+				body: JSON.stringify({ action: 'delete', data: { id: idToDelete } }),
+				headers: { 'Content-Type': 'application/json' }
+			});
+			
+			if (res.ok) {
+				modal.classList.add('hidden');
+				notify('Enlace eliminado con éxito');
+				loadLinks();
+			} else {
+				notify('Error al eliminar', '❌');
+			}
+		} catch (e) {
+			notify('Error de red', '❌');
+		} finally {
+			modalConfirm.disabled = false;
+			modalConfirm.textContent = 'Confirmar Eliminación';
+			idToDelete = null;
+		}
+	});
+
 	refreshBtn.addEventListener('click', loadLinks);
 
 	exportBtn.addEventListener('click', async () => {
-		const response = await fetch('/api/manage', {
-			method: 'POST',
-			body: JSON.stringify({ action: 'export' }),
-			headers: { 'Content-Type': 'application/json' }
-		});
-		const result = await response.json();
-		if (response.ok) {
-			const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(result.links, null, 2));
-			const downloadAnchorNode = document.createElement('a');
-			downloadAnchorNode.setAttribute("href",     dataStr);
-			downloadAnchorNode.setAttribute("download", `links_backup_${new Date().toISOString().split('T')[0]}.json`);
-			downloadAnchorNode.click();
-			downloadAnchorNode.remove();
+		try {
+			const res = await fetch('/api/manage', {
+				method: 'POST',
+				body: JSON.stringify({ action: 'export' }),
+				headers: { 'Content-Type': 'application/json' }
+			});
+			const result = await res.json();
+			if (res.ok) {
+				const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(result.links, null, 2));
+				const anchor = document.createElement('a');
+				anchor.setAttribute("href", dataStr);
+				anchor.setAttribute("download", `links_backup_${new Date().toISOString().split('T')[0]}.json`);
+				anchor.click();
+				notify('Copia de seguridad descargada');
+			}
+		} catch (e) {
+			notify('Error al exportar', '❌');
 		}
 	});
 
 	importFile.addEventListener('change', async (e) => {
 		const file = (e.target as HTMLInputElement).files?.[0];
 		if (!file) return;
+		
 		const reader = new FileReader();
-		reader.onload = async (event) => {
+		reader.onload = async (ev) => {
 			try {
-				const data = JSON.parse(event.target?.result as string);
-				const response = await fetch('/api/manage', {
+				const data = JSON.parse(ev.target?.result as string);
+				const res = await fetch('/api/manage', {
 					method: 'POST',
 					body: JSON.stringify({ action: 'import', data }),
 					headers: { 'Content-Type': 'application/json' }
 				});
-				if (response.ok) {
-					alert('Base de datos importada correctamente.');
+				if (res.ok) {
+					notify('Datos importados con éxito');
 					loadLinks();
+				} else {
+					notify('Error al importar datos', '❌');
 				}
-			} catch (err) {
-				alert('El archivo JSON no es válido.');
+			} catch (e) {
+				notify('El archivo JSON no es válido', '❌');
+			} finally {
+				importFile.value = ''; // Reset input
 			}
 		};
 		reader.readAsText(file);
