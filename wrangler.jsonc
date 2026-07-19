@@ -17,7 +17,7 @@
 			"binding": "link_db",
 			"database_name": "link-db",
 			"database_id": "bbde2af0-b760-43e0-98d9-ed842186cd24",
-			"remote": true
+			"remote": false
 		}
 	]
 }

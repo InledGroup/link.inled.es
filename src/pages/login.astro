@@ -2,124 +2,51 @@
 import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout title="Acceso Administrativo - link.inled.es">
-	<div class="login-page">
-		<div class="login-container">
-			<div class="login-header">
-				<img src="https://hosted.inled.es/inled-logo-full.png" alt="Inled" class="logo-img" />
+<Layout title="Acceso - link.inled.es">
+	<div style="display:flex;align-items:center;justify-content:center;min-height:80vh;">
+		<div style="width:100%;max-width:380px;">
+			<div style="text-align:center;margin-bottom:2rem;">
+				<img src="https://hosted.inled.es/inled-logo-full.png" alt="Inled" style="height:44px;" />
 			</div>
-			
-			<div class="card login-card">
-				<div class="card-title">
-					<h1>Acceso Restringido</h1>
-					<p>Introduce tu contraseña para gestionar el sistema.</p>
+
+			<div class="card" style="padding:2rem;">
+				<div style="text-align:center;margin-bottom:1.5rem;">
+					<h1 style="font-size:1.25rem;margin-bottom:0.25rem;">Acceso Restringido</h1>
+					<p style="font-size:0.875rem;color:#64748b;">Introduce tu contraseña para acceder al panel.</p>
 				</div>
-				
-				<form id="login-form" class="login-form">
-					<div class="form-control">
-						<label for="password">Contraseña Maestra</label>
+
+				<form id="login-form" style="display:flex;flex-direction:column;gap:1.25rem;">
+					<div class="form-group">
+						<label for="password">Contraseña</label>
 						<input type="password" id="password" name="password" required autofocus placeholder="••••••••" />
 					</div>
-					
+
+					<div style="display:flex;justify-content:center;">
+						<altcha-widget
+							challenge="/api/altcha"
+							auto="off"
+							type="checkbox"
+							name="altcha"
+						></altcha-widget>
+					</div>
+
 					<button type="submit" id="login-btn" class="btn btn-primary w-full">
-						Entrar al Panel
+						Entrar
 						<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
 					</button>
 				</form>
 
-				<div id="error-message" class="error-banner hidden">
-					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+				<div id="error-message" class="hidden" style="margin-top:1rem;padding:0.75rem;background:#fef2f2;border:1px solid #fecaca;color:#991b1b;border-radius:0.5rem;font-size:0.8125rem;text-align:center;font-weight:600;">
 					Credenciales incorrectas.
 				</div>
 			</div>
-			
-			<footer class="login-footer">
-				<p>link.inled.es &copy; 2026</p>
+
+			<footer style="text-align:center;margin-top:2rem;font-size:0.75rem;color:#94a3b8;">
+				link.inled.es &copy; 2026
 			</footer>
 		</div>
 	</div>
 </Layout>
-
-<style>
-	.login-page {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		min-height: 80vh;
-		width: 100%;
-		animation: fade-in 0.6s ease-out;
-	}
-
-	@keyframes fade-in {
-		from { opacity: 0; transform: translateY(10px); }
-		to { opacity: 1; transform: translateY(0); }
-	}
-
-	.login-container {
-		width: 100%;
-		max-width: 400px;
-	}
-
-	.login-header {
-		display: flex;
-		justify-content: center;
-		margin-bottom: 2.5rem;
-	}
-
-	.logo-img {
-		height: 48px;
-		filter: drop-shadow(0 2px 8px rgba(0,0,0,0.05));
-	}
-
-	.login-card {
-		padding: 2.5rem;
-		box-shadow: var(--shadow-lg);
-	}
-
-	.card-title {
-		text-align: center;
-		margin-bottom: 2rem;
-	}
-
-	.card-title h1 {
-		font-size: 1.5rem;
-		margin-bottom: 0.5rem;
-	}
-
-	.card-title p {
-		font-size: 0.875rem;
-		color: hsl(var(--muted-fg));
-	}
-
-	.login-form {
-		display: flex;
-		flex-direction: column;
-		gap: 1.5rem;
-	}
-
-	.error-banner {
-		margin-top: 1.5rem;
-		padding: 0.75rem;
-		background-color: #fef2f2;
-		border: 1px solid #fecaca;
-		color: #991b1b;
-		border-radius: var(--radius-md);
-		font-size: 0.8125rem;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: 0.5rem;
-		font-weight: 600;
-	}
-
-	.login-footer {
-		text-align: center;
-		margin-top: 2.5rem;
-		font-size: 0.75rem;
-		color: hsl(var(--muted-fg));
-		font-weight: 500;
-	}
-</style>
 
 <script>
 	const form = document.getElementById('login-form') as HTMLFormElement;
@@ -129,29 +56,44 @@ import Layout from '../layouts/Layout.astro';
 	form.addEventListener('submit', async (e) => {
 		e.preventDefault();
 		errorBox.classList.add('hidden');
-		btn.disabled = true;
-		const originalText = btn.innerHTML;
-		btn.innerHTML = 'Verificando...';
 
 		const password = (document.getElementById('password') as HTMLInputElement).value;
+
+		// Get ALTCHA token
+		const altchaInput = form.querySelector('input[name="altcha"]') as HTMLInputElement | null;
+		if (!altchaInput || !altchaInput.value) {
+			errorBox.textContent = 'Debes completar la verificación.';
+			errorBox.classList.remove('hidden');
+			return;
+		}
+
+		btn.disabled = true;
+		btn.innerHTML = 'Verificando...';
 
 		try {
 			const res = await fetch('/api/login', {
 				method: 'POST',
-				body: JSON.stringify({ password }),
+				body: JSON.stringify({ password, altchaToken: altchaInput.value }),
 				headers: { 'Content-Type': 'application/json' }
 			});
 
 			if (res.ok) {
 				window.location.href = '/';
 			} else {
+				const result = await res.json();
+				errorBox.textContent = result.error === 'Verificación fallada'
+					? 'Verificación fallada. Inténtalo de nuevo.'
+					: 'Credenciales incorrectas.';
 				errorBox.classList.remove('hidden');
 			}
-		} catch (error) {
-			alert('Error de conexión con el servidor');
+		} catch (err) {
+			errorBox.textContent = 'Error de conexión.';
+			errorBox.classList.remove('hidden');
 		} finally {
 			btn.disabled = false;
-			btn.innerHTML = originalText;
+			btn.innerHTML = 'Entrar <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>';
 		}
 	});
 </script>
+
+<script is:inline src="/altcha.min.js"></script>

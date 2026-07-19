@@ -1,27 +1,52 @@
 import type { APIRoute } from 'astro';
 import { env } from 'cloudflare:workers';
+import { createSessionToken } from '../../lib/auth';
+import { verifyAltchaPayload } from './altcha';
 
-export const POST: APIRoute = async ({ request, cookies }) => {
+interface LoginBody {
+	password: string;
+	altchaToken: string;
+}
+
+function getSecret(): string {
+	const e = env as unknown as { SESSION_SECRET?: string; ADMIN_PASSWORD?: string };
+	return e.SESSION_SECRET || e.ADMIN_PASSWORD || 'dev-altcha-secret';
+}
+
+export const POST: APIRoute = async ({ request }) => {
 	try {
-		const { password } = await request.json();
-		
-		// En local dev, 'env' de cloudflare:workers podría no estar poblado si no se corre con wrangler
-		// Pero en build/prod es lo correcto.
-		const adminPassword = env.ADMIN_PASSWORD || (process.env.ADMIN_PASSWORD);
+		const { password, altchaToken } = await request.json() as LoginBody;
 
-		if (password === adminPassword) {
-			cookies.set('auth_session', 'true', {
-				path: '/',
-				httpOnly: true,
-				secure: true,
-				sameSite: 'strict',
-				maxAge: 60 * 60 * 24 * 7 // 1 semana
-			});
-			return new Response(JSON.stringify({ success: true }), { status: 200 });
+		if (!altchaToken) {
+			return new Response(JSON.stringify({ error: 'Token de verificación requerido' }), { status: 400 });
 		}
 
-		return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
-	} catch (error: any) {
-		return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+		// Verify ALTCHA token using our own lib
+		const altchaResult = await verifyAltchaPayload(altchaToken);
+
+		if (!altchaResult.verified) {
+			return new Response(JSON.stringify({ error: `Verificación fallada: ${altchaResult.reason}` }), { status: 403 });
+		}
+
+		// Verify password
+		const adminPassword = (env as unknown as { ADMIN_PASSWORD: string }).ADMIN_PASSWORD;
+
+		if (password !== adminPassword) {
+			return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+		}
+
+		// Generate signed session token
+		const token = await createSessionToken(getSecret());
+
+		const headers = new Headers();
+		headers.append('Set-Cookie',
+			`auth_session=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${60 * 60 * 24 * 7}`
+		);
+		headers.set('Content-Type', 'application/json');
+
+		return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+	} catch (error: unknown) {
+		const message = error instanceof Error ? error.message : 'Error desconocido';
+		return new Response(JSON.stringify({ error: message }), { status: 500 });
 	}
 };

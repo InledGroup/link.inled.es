@@ -7,6 +7,7 @@ declare module "cloudflare:workers" {
 interface Env {
 	link_db: D1Database;
 	ADMIN_PASSWORD: string;
+	SESSION_SECRET: string;
 }
 
 declare namespace App {

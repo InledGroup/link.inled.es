@@ -1,26 +1,41 @@
 import { defineMiddleware } from "astro:middleware";
+import { env } from "cloudflare:workers";
+import { verifySessionToken, getTokenFromCookie } from "./lib/auth";
+
+const PUBLIC_PATHS = ["/login", "/api/login", "/api/altcha"];
+
+function getSecret(): string {
+	const e = env as unknown as { SESSION_SECRET?: string; ADMIN_PASSWORD?: string };
+	return e.SESSION_SECRET || e.ADMIN_PASSWORD || 'dev-altcha-secret';
+}
 
 export const onRequest = defineMiddleware(async (context, next) => {
-  // Public paths
-  const publicPaths = ["/login", "/api/login"];
-  const isPublic = publicPaths.some(path => context.url.pathname.startsWith(path));
-  
-  // Slugs are also "public" in the sense that they redirect, 
-  // but we only want to protect the management UI and the creation API.
-  // Actually, let's protect everything except /login and the redirects themselves.
-  
-  const isRedirect = context.url.pathname !== "/" && !context.url.pathname.startsWith("/api") && !context.url.pathname.startsWith("/_astro");
+	const pathname = context.url.pathname;
 
-  if (isPublic || isRedirect) {
-    return next();
-  }
+	if (PUBLIC_PATHS.some(p => pathname.startsWith(p))) {
+		return next();
+	}
 
-  const authCookie = context.cookies.get("auth_session");
-  
-  // If no cookie and trying to access root or creation APIs, redirect to login
-  if (!authCookie && (context.url.pathname === "/" || context.url.pathname.startsWith("/api"))) {
-    return context.redirect("/login");
-  }
+	const isSlug = pathname !== "/" && !pathname.startsWith("/api") && !pathname.startsWith("/_astro");
+	if (isSlug) {
+		return next();
+	}
 
-  return next();
+	const cookieHeader = context.request.headers.get("Cookie") || "";
+	const token = getTokenFromCookie(cookieHeader);
+
+	if (!token) {
+		if (pathname === "/" || pathname.startsWith("/api")) {
+			return context.redirect("/login");
+		}
+		return next();
+	}
+
+	const valid = await verifySessionToken(getSecret(), token);
+
+	if (!valid && (pathname === "/" || pathname.startsWith("/api"))) {
+		return context.redirect("/login");
+	}
+
+	return next();
 });
