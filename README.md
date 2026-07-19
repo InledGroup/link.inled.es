@@ -1,24 +1,11 @@
-# Acortador de Enlaces link.inled.es 🚀
+# link.inled.es
 
-Acortador de enlaces minimalista construido con **Astro v6**, diseñado para ser desplegado en **Cloudflare Workers/Pages** utilizando **Cloudflare D1** como base de datos.
-
-## Características ✨
-
-- 🔒 **Muro de Login**: Acceso restringido mediante contraseña de administrador.
-- 🔗 **Slugs Personalizados**: Elige el nombre final de tus enlaces.
-- 📊 **Gestión Completa**: Panel para listar, borrar y ver tus enlaces.
-- 📂 **Importación/Exportación**: Soporte para copias de seguridad en formato JSON.
-- ⚡ **Ultra Rápido**: Ejecución en el "Edge" con Cloudflare Workers.
-- 🎨 **Diseño Moderno**: Interfaz limpia inspirada en Shadcn/UI.
+Acortador de enlaces. Usa CF D1, Altcha y un worker
 
 ---
 
-## Configuración y Despliegue Paso a Paso 🛠️
+## Configurar para desplegar
 
-### 1. Requisitos Previos
-- Cuenta de [Cloudflare](https://dash.cloudflare.com/).
-- Node.js instalado (v20 o superior).
-- Repositorio de GitHub configurado.
 
 ### 2. Preparación del Repositorio
 ```bash
@@ -67,10 +54,11 @@ npx wrangler d1 migrations apply link-db --local
 5. **Variable de Entorno**:
    - `Settings` -> `Environment variables`.
    - Añade `ADMIN_PASSWORD` (puedes usar el mismo valor que el secreto anterior).
+   - Añade `SESSION_SECRET` que creas con `openssl rand -hex 32`
 
 ---
 
-## Desarrollo Local 💻
+## En local
 
 Para ejecutar el proyecto localmente simulando el entorno de Cloudflare:
 
@@ -79,7 +67,7 @@ npx wrangler dev
 ```
 Accede a `http://localhost:8788`.
 
-## Estructura de Importación JSON 📂
+## Estructura de Importación JSON
 Si deseas importar enlaces masivamente, el formato debe ser:
 ```json
 [
@@ -90,4 +78,4 @@ Si deseas importar enlaces masivamente, el formato debe ser:
 
 ---
 
-Desarrollado con ❤️ por Jaime & Gemini CLI.
+Desarrollado utilizando IA.

@@ -2,7 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout title="Acceso - link.inled.es">
+<Layout title="Acceder a link.inled.es">
 	<div style="display:flex;align-items:center;justify-content:center;min-height:80vh;">
 		<div style="width:100%;max-width:380px;">
 			<div style="text-align:center;margin-bottom:2rem;">
@@ -42,7 +42,7 @@ import Layout from '../layouts/Layout.astro';
 			</div>
 
 			<footer style="text-align:center;margin-top:2rem;font-size:0.75rem;color:#94a3b8;">
-				link.inled.es &copy; 2026
+				Licenciado bajo MIT-INLED
 			</footer>
 		</div>
 	</div>
@@ -81,8 +81,8 @@ import Layout from '../layouts/Layout.astro';
 				window.location.href = '/';
 			} else {
 				const result = await res.json();
-				errorBox.textContent = result.error === 'Verificación fallada'
-					? 'Verificación fallada. Inténtalo de nuevo.'
+				errorBox.textContent = result.error === 'Verificación fallida'
+					? 'Verificación fallida. Inténtalo de nuevo.'
 					: 'Credenciales incorrectas.';
 				errorBox.classList.remove('hidden');
 			}
